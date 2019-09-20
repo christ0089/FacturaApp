@@ -29,11 +29,11 @@ export class PostPictureService {
       encodingType: this.camera.EncodingType.JPEG,
       mediaType: this.camera.MediaType.PICTURE,
     }
-
+    
     return this.camera.getPicture(options).then((imageData) => {
       // imageData is either a base64 encoded string or a file URI
       let base64Image = null;
-      console.log(imageData);
+      console.log(base64Image);
       if (this.platform.is('ios')) {
         base64Image = 'data:image/jpeg;base64,' + imageData;
       } else {
@@ -48,19 +48,27 @@ export class PostPictureService {
 
   postPicture(url, path, key?) {
     const imageURL = key;
+
+    const metadata = {
+      cacheControl: 'public,max-age=300',
+      contentType: 'image/jpeg',
+      customMetadata: {
+        'author': key,
+        'time': Date.now().toString()
+      }
+    }
+
     return new Promise((resolve, reject) => {
       const storageRef = firebaseRef.storage().ref().child(path).child(imageURL);
       if (this.platform.is('ios')) {
-        console.log("Uploading");
-        const parseUpload = storageRef.putString(url, firebaseRef.storage.StringFormat.DATA_URL);
+        const parseUpload = storageRef.putString(url, firebaseRef.storage.StringFormat.DATA_URL, metadata);
         parseUpload.then(() => {
-          console.log("Success");
           return resolve(storageRef.getDownloadURL());
         }).catch((error) => {
           return reject(error);
         });
       } else {
-        const parseUpload = storageRef.putString(url, 'base64', { contentType: 'image/jpeg' });
+        const parseUpload = storageRef.putString(url, 'base64', metadata);
         parseUpload.then(() => {
           return resolve(storageRef.getDownloadURL());
         }).catch((error) => {

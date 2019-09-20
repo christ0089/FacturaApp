@@ -1,7 +1,7 @@
 
 import { Component, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { NavController, LoadingController, Platform } from '@ionic/angular';
+import { NavController, LoadingController, Platform, ToastController } from '@ionic/angular';
 import { PostPictureService } from '../../Services/post-picture';
 import { Storage } from '@ionic/storage';
 import { IRFC } from 'src/app/Models/rfc';
@@ -12,6 +12,7 @@ import { IonSlides } from '@ionic/angular';
 import { FadeAnimation } from 'src/app/Animations/fadeAnim';
 import { RfcsService } from 'src/app/Services/rfcs.service';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
+import { load } from '@angular/core/src/render3';
 
 @Component({
   selector: 'app-home',
@@ -42,6 +43,7 @@ export class HomePage {
     public camera: PostPictureService,
     private barcodeScanner: BarcodeScanner,
     private rfcs: RfcsService,
+    private snackBar: ToastController,
     private platform: Platform,
     private loadingCtrl: LoadingController
   ) {
@@ -62,7 +64,7 @@ export class HomePage {
   ionViewDidEnter() {
     this.platform.ready().then((readySource) => {
       if (this.platform.width() < '400') {
-        this.sliderConfig.spaceBetween = 2.5;
+        this.sliderConfig.spaceBetween =  2.5;
         this.sliderConfig.slidesPerView = 1.2;
       }
       console.log('Width: ' + this.platform.width());
@@ -77,11 +79,19 @@ export class HomePage {
   }
 
   scanCodeV2(rfcEncoded: string) {
-    this.barcodeScanner.scan({ formats: 'QR_CODE' }).then((data) => {
+    this.barcodeScanner.scan({formats: 'QR_CODE'}).then((data) => {
       const doc = this.firestore.createId();
       const rfc = JSON.parse(rfcEncoded) as IRFC;
       this.firestore.collection('QR_Preprocessing').doc(doc).set(data.text);
       this.navCtrl.navigateForward(`/approve/${doc}/${rfc.rfc}`);
+    }).catch(e => {
+      this.snackBar.create({
+        message: e,
+        color: "warning",
+        duration: 1000000
+      }).then((data) => {
+        data.present();
+      });
     });
   }
 
@@ -90,11 +100,28 @@ export class HomePage {
       const docId = this.firestore.createId();
       const loading = await this.loadingCtrl.create();
       loading.present();
-      this.camera.postPicture(url, '', docId).catch(e => {
-        console.log(e);
+      const cameraUpload = this.camera.postPicture(url, '', docId);
+      Promise.resolve(cameraUpload).then(() => {
+        this.loadingCtrl.dismiss();
+        this.navCtrl.navigateForward(`/approve/${docId}/${rfc.rfc}`).catch(e => {
+          this.snackBar.create({
+            message: e,
+            color: "light",
+            duration: 2000
+          }).then((data) => {
+            data.present();
+          });
+          console.error(e);
+        });
+      }).catch(e => {
+        this.snackBar.create({
+          message: e,
+          color: "warning",
+          duration: 100000
+        }).then((data) => {
+          data.present();
+        });
       });
-      this.navCtrl.navigateForward(`/approve/${docId}/${rfc.rfc}`);
-      // Make a reference to the future location of the firestore document
     });
   }
 

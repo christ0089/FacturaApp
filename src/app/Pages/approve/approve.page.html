@@ -1,19 +1,16 @@
 <ion-header>
   <ion-toolbar>
+    <ion-back-button style="display: inline-block"></ion-back-button>
     <ion-title>Approve</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content padding>
   <h1>Is this correct?</h1>
-  <div *ngIf="result$  | async; let results"></div>
-    <h3>Resultados del Ticket</h3>
-    <form [formGroup]="register" (submit)="acceptTicket()">
-      <ion-item *ngFor="let field of form">
-        <ion-label position="floating">{{field.name}}</ion-label>
-        <ion-input formControlName="{{field.name}}"></ion-input>
-      </ion-item>
-      <ion-button shape="round" style="font-size: 3.5vw; height: 30px;" type="submit">Approvar</ion-button>
-    </form>
+  <div *ngIf="rfc != null; else loading">
+      <app-form-builder [rfc]='rfc' [docId]='docId' (jobFinished)="finished($event)"></app-form-builder>
   </div>
+  <ng-template #loading>
+    <ion-progress-bar type="indeterminate"></ion-progress-bar>
+  </ng-template>
 </ion-content>

@@ -24,6 +24,7 @@ import { AngularFireStorageModule } from '@angular/fire/storage';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { PostPictureService } from './Services/post-picture';
 import { RfcsService } from './Services/rfcs.service';
+import { ComponentsModule } from './Component/components.module';
 
 const firebase = {
   apiKey: "AIzaSyDa8eHeCBrRxICg_HzEsOO7ULMhy79vPxY",
@@ -48,6 +49,7 @@ const firebase = {
     AngularFirestoreModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
+    ComponentsModule,
     AppRoutingModule],
   providers: [
     StatusBar,

@@ -32,12 +32,12 @@
         <ion-input formControlName="receiver"></ion-input>
       </ion-item>
       <div *ngIf="editMode == false; else edit">
-          <ion-button (click)="scanCodeV2()" color="danger" shape="round">
+          <ion-button (click)="scanCodeV2()" color="danger" shape="round" expand="full">
               <ion-icon slot="start" name="camera"></ion-icon>
               Agregar por QR
             </ion-button>
             <br>
-            <ion-button shape="round" style="font-size: 3.5vw; height: 30px;" type="submit">Enter</ion-button>
+            <ion-button shape="round" style="font-size: 3.5vw; height: 30px;" type="submit" expand="full">Enter</ion-button>
       </div>
       <ng-template #edit>
           <ion-button shape="round" type="submit">Guardar</ion-button>

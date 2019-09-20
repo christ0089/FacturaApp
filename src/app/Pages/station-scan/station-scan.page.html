@@ -5,33 +5,41 @@
 </ion-header>
 
 <ion-content padding>
-
-  <ion-button *ngIf="rfc == null" (click)="scanCodeV2()" color="danger" shape="round" expand="full">
+  <ion-button *ngIf="clientRFC == null; else userForm" (click)="scanCodeV2()" color="danger" shape="round" expand="full">
     <ion-icon slot="start" name="camera"></ion-icon>
     QR de Cliente
   </ion-button>
+  <ng-template #userForm>
+    <div class="holder" [@fadeInMS] >
+      <ion-label>Cliente</ion-label>
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>
+            {{ clientRFC.rfc }} <br>
+            {{ clientRFC.name }}
+          </ion-card-title>
+        </ion-card-header>
+      </ion-card>
+    </div>
+  </ng-template>
+  <ion-label>Informacion de Factura</ion-label>
+  <div class="holder">
+    <ion-slides #slides (ionSlideDidChange)="slideChanged()">
+      <ion-slide *ngFor="let rfcData of rfcService.rfcArr; let i = index;">
+        <ion-card>
+          <ion-card-header>
+            {{ rfcData.razonSocial }}
+            {{ rfcData.rfc }} <br>
+          </ion-card-header>
+        </ion-card>
+      </ion-slide>
+    </ion-slides>
+  </div>
+  <ion-button *ngIf=" clientRFC == null && docId == null; else loading" (click)="uploadImage()" expand="full" color="secondary"
+    shape="round">
+    <ion-icon slot="start" name="camera"></ion-icon>
+    Usar Ticket
+  </ion-button>
 
-  <div class="holder" *ngIf="rfc != null">
-    <ion-label>Cliente</ion-label>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          {{ rfc?.rfc }} <br>
-          {{ rfc?.name }}
-        </ion-card-title>
-      </ion-card-header>
-    </ion-card>
-  </div>
-  <div class="holder" *ngIf="storeData != null">
-    <ion-label>Informacion de Factura</ion-label>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          {{ rfc?.rfc }} <br>
-          {{ rfc?.name }}
-        </ion-card-title>
-      </ion-card-header>
-    </ion-card>
-  </div>
-  <ion-button shape="round" expand="full" type="submit">Acceptar</ion-button>
+  <app-form-builder *ngIf="clientRFC != null" [rfc]='clientRFC' [docId]='docId' (jobFinished)="finished($event)"></app-form-builder>
 </ion-content>

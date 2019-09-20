@@ -1,77 +1,105 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import { IRFC, RFC } from 'src/app/Models/rfc';
-import { ApprovePage } from '../approve/approve.page';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { Storage } from '@ionic/storage';
 import { FormControl, FormGroup } from '@angular/forms';
 import { QuestionService } from 'src/app/Services/question.service';
-import { filter, tap } from 'rxjs/operators';
-import { LoadingController } from '@ionic/angular';
+import { filter, tap, take } from 'rxjs/operators';
+import { LoadingController, ToastController, NavController, IonSlides } from '@ionic/angular';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { PostPictureService } from 'src/app/Services/post-picture';
+import { RfcsService } from 'src/app/Services/rfcs.service';
+import { ActivatedRoute } from '@angular/router';
+import { FadeAnimation } from 'src/app/Animations/fadeAnim';
 
 @Component({
   selector: 'app-station-scan',
   templateUrl: './station-scan.page.html',
   styleUrls: ['./station-scan.page.scss'],
+  animations: [
+    FadeAnimation.fadeInMS(2)
+  ]
 })
 export class StationScanPage {
   rfcScan = null;
-  storeData = null;
-  public register: FormGroup;
-  private form = [];
+  clientRFC: IRFC = null;
+  docId: string = null;
+  rfc: IRFC = null;
+  @ViewChild('slides') slides: IonSlides;
+
   constructor(
     private barcode: BarcodeScanner,
     public firestore: AngularFirestore,
-    private questionService: QuestionService,
-    private storage: Storage,
-    private loadingCtrl: LoadingController,
+    public loadingCtrl: LoadingController,
+    public activeRoute: ActivatedRoute,
+    public camera: PostPictureService,
+    public snackBar: ToastController,
+    public navCtrl: NavController,
+    public rfcService: RfcsService,
+    public questionService: QuestionService,
   ) {
-    return;
-    if (this.storage.get('company') != null) {
-      this.storeData = this.storage.get('company');
-      const ticketRef = this.firestore.collection('CompanyReq').doc(this.storeData.company);
-      // Firestore observable, dismiss loader when data is available
-      ticketRef.valueChanges()
-        .pipe(
-          filter(data => !!data),
-          tap((data) => {
-            this.register = this.questionService.toForm(data);
-            Object.keys(data).forEach(element => {
-              this.form.push({
-                name: element,
-                value: data[element]
-              });
-              this.register.get(element).setValue(data[element]);
-            });
-            this.loadingCtrl.dismiss();
-          })
-        );
-    } else {
+  }
 
+  ngOnInit() {
+    if (this.rfcService.rfcArr.length === 0) {
+      this.snackBar.create({
+        message: 'Porfavor la empresa agrega en el menu de inicio.',
+        duration: 2000
+      }).then((toast) => {
+        toast.present();
+      });
     }
   }
-  ngOnInit() {
+
+  slideChanged() {
+    this.slides.getActiveIndex().then(index => {
+      this.rfc = this.rfcService.rfcArr[index];
+    });
+  }
+
+
+  finished($event) {
 
   }
 
   scanCodeV2() {
     this.barcode.scan({ formats: 'QR_CODE' }).then((data) => {
-      this.rfcScan = new RFC();
-      this.rfcScan = JSON.parse(data.text) as RFC;
+      this.clientRFC = JSON.parse(data.text) as IRFC;
       if (this.rfcScan == null) {
         return;
       }
     });
   }
 
-  acceptTicket() {
-    /*   if (this.register.valid === true) {
-         const ticketData = {};
-         this.form.forEach(element => {
-           ticketData[element.name] = this.register.get(element.name).value;
-         });
-         const resultForm = { rfc: this.rfcScan, ...ticketData };
-         this.firestore.collection('Tickets').doc(this.docId).update(resultForm);
-       }*/
+  uploadImage() {
+    if (this.clientRFC === null) {
+      this.snackBar.create({
+        message: "Favor de Agregar al cliente primero",
+        color: "warning",
+        duration: 2000
+      }).then((data) => {
+        data.present();
+      });
+      return;
+    }
+    this.camera.openGallery().then(async (url) => {
+      this.docId = this.firestore.createId();
+      const loading = await this.loadingCtrl.create();
+      loading.present();
+      const cameraUpload = this.camera.postPicture(url, '', this.docId);
+      Promise.resolve(cameraUpload).then(() => {
+        this.loadingCtrl.dismiss();
+      }).catch(e => {
+        this.snackBar.create({
+          message: e,
+          color: "warning",
+          duration: 2000
+        }).then((data) => {
+          data.present();
+        });
+      });
+    });
   }
+
 }
