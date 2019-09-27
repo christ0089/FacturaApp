@@ -8,10 +8,10 @@ import { IRFC } from '../Models/rfc';
 export class RfcsService {
 
   private exampleRFC: IRFC = {
-    rfc: 'PLA0019182312',
-    name: 'Gisa - Contaduria',
-    razonSocial :'Gisa Software',
-    receiver : 'chris@gmail.com'
+    rfc: 'EJE001234567',
+    name: 'Ejemplo - Contaduria',
+    razonSocial : 'Ejemplo',
+    receiver : 'demo@ejemplo.com',
   };
 
   private rfcs = [

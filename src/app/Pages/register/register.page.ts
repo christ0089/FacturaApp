@@ -68,13 +68,16 @@ export class RegisterPage implements OnInit {
   }
 
   parseDataToRfcForm(rfcData) {
+    console.log(rfcData);
     this.rfcModel = rfcData as RFC;
     this.editMode = true;
     this.register.get('rfc').setValue(rfcData.rfc);
-    this.register.get('location').setValue(`${rfcData.address.street}, ${rfcData.address.colonia}, ${rfcData.address.state}`);
     this.register.get('name').setValue(rfcData.name);
     this.register.get('razonSocial').setValue(rfcData.razonSocial);
-    this.register.get('zip').setValue(rfcData.address.zip);
+    if (rfcData.address != null) {
+      this.register.get('location').setValue(`${rfcData.address.street}, ${rfcData.address.colonia}, ${rfcData.address.state}`);
+      this.register.get('zip').setValue(rfcData.address.zip);
+    }
     this.register.get('receiver').setValue(rfcData.receiver);
   }
 

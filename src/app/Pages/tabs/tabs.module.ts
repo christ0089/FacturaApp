@@ -16,6 +16,7 @@ import { TabsPage } from './tabs.page';
         path: '',
         component: TabsPage,
         children: [
+          {path: '', loadChildren: '../home/home.module#HomePageModule' },
           {path: 'home', loadChildren: '../home/home.module#HomePageModule'},
           {path: 'station-scan', loadChildren: '../station-scan/station-scan.module#StationScanPageModule'},
         ]
